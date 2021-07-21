@@ -17,4 +17,3 @@ async def request_get(url: str, return_text: bool = False, return_json: bool = F
             return await response.text()
         else:
             return await response.json()
-

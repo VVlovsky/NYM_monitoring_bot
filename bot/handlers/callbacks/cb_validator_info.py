@@ -43,11 +43,10 @@ async def check_validator(call: CallbackQuery, state: FSMContext):
 
 
 def generate_response(address, data, call_):
-
     short_address = data.identity_key[0:4] + '...' + data.identity_key[-5:-1]
     short_sphinx = data.sphinx_key[0:4] + '...' + data.sphinx_key[-5:-1]
     short_owner = data.owner[0:4] + '...' + data.owner[-5:-1]
-    hals = str(int(data.amount) // 1000000) + '.' + str(int(data.amount) % 1000000) + ' HAL'
+    hals = str(int(data.total_amount) // 1000000) + '.' + str(int(data.total_amount) % 1000000) + ' PUNK'
 
     response = call_.edit_text(
         text=message.validator_statistic % (data.id,

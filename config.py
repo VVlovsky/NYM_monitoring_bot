@@ -13,7 +13,7 @@ class Config:
 
     db_name: str = field(default='nym.db')
 
-    api_validator_data: str = field(default='https://testnet-finney-explorer.nymtech.net/data/mixnodes.json')
+    api_validator_data: str = field(default='https://testnet-milhon-validator1.nymtech.net/api/v1/mixnodes')
 
     def __post_init__(self):
         self.database_path = os.path.dirname(os.path.abspath(__file__)) + '/' + self.db_name
@@ -23,4 +23,4 @@ class Config:
         self.dp = Dispatcher(self.bot)
 
 
-cfg = Config(bot_token='SET_YOUR_TOKEN')
+cfg = Config(bot_token='')
