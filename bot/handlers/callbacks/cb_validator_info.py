@@ -46,13 +46,16 @@ def generate_response(address, data, call_):
     short_address = data.identity_key[0:4] + '...' + data.identity_key[-5:-1]
     short_sphinx = data.sphinx_key[0:4] + '...' + data.sphinx_key[-5:-1]
     short_owner = data.owner[0:4] + '...' + data.owner[-5:-1]
-    hals = str(int(data.total_amount) // 1000000) + '.' + str(int(data.total_amount) % 1000000) + ' PUNK'
+    punks = str(int(data.total_amount) // 1000000) + '.' + str(int(data.total_amount) % 1000000) + ' PUNK'
+    punks_bond = str(int(data.bond_amount) // 1000000) + '.' + str(int(data.bond_amount) % 1000000) + ' PUNK'
+    punks_delegated = str(int(data.delegation_amount) // 1000000) + '.' + str(
+        int(data.delegation_amount) % 1000000) + ' PUNK'
 
     response = call_.edit_text(
         text=message.validator_statistic % (data.id,
                                             data.identity_key, short_address, short_sphinx, short_owner, data.layer,
                                             data.location, data.version,
-                                            data.host, hals),
+                                            data.host, punks, punks_bond, punks_delegated),
         reply_markup=Keyboard.repeat(), disable_web_page_preview=True
     )
 

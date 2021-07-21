@@ -37,11 +37,11 @@ async def update_validator_table():
     for data_dict in sorted(data, key=lambda k: int(k['total_amount']), reverse=True):
 
         data_dict = dict(itertools.chain.from_iterable(itertools.starmap(unpack, data_dict.items())))
-        filter_by_address = {'identity_key': data_dict['identity_key']}
+        filter_by_address = {'owner': data_dict['owner']}
         get_validator_data = validator_static.get_row_by_criteria(criteria=filter_by_address)
 
         if get_validator_data:
-            data_dict.pop('identity_key')
+            data_dict.pop('owner')
             validator_static.upgrade_row_by_criteria(data_dict, criteria=filter_by_address)
         else:
             validator_static.paste_row(data_dict)
@@ -63,14 +63,16 @@ async def update_leaderboard_table():
         short_sphinx = data.sphinx_key[0:4] + '...' + data.sphinx_key[-5:-1]
         short_owner = data.owner[0:4] + '...' + data.owner[-5:-1]
         punks = str(int(data.total_amount) // 1000000) + '.' + str(int(data.total_amount) % 1000000) + ' PUNK'
+        punks_bond = str(int(data.bond_amount) // 1000000) + '.' + str(int(data.bond_amount) % 1000000) + ' PUNK'
+        punks_delegated = str(int(data.delegation_amount) // 1000000) + '.' + str(int(data.delegation_amount) % 1000000) + ' PUNK'
 
         # if not data.rank:
         #     validator_static.upgrade_row_by_criteria({'rank': counter}, {'identity_key': data.identity_key})
 
         note += message.leaderboard_note % (counter,
-                                            data.identity_key, short_address, short_sphinx, short_owner, data.layer,
-                                            data.location, data.version,
-                                            data.host, punks)
+                                            data.identity_key, short_address, short_sphinx, short_owner,
+                                            data.version,
+                                            data.host, punks, punks_bond, punks_delegated)
 
         print(note)
 
