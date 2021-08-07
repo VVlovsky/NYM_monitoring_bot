@@ -16,5 +16,8 @@ async def request_get(url: str, return_text: bool = False, return_json: bool = F
         if return_text:
             return await response.text()
         else:
-            return await response.json()
-
+            try:
+                return await response.json()
+            except Exception as e:
+                print(f'WARN: {e}')
+                return {}

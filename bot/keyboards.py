@@ -9,8 +9,8 @@ class Keyboard:
     def main_menu() -> InlineKeyboardMarkup:
         keyboard = InlineKeyboardMarkup(row_width=1)
         keyboard.add(
-            InlineKeyboardButton(text='🌸 Sakura', callback_data='leaderboard'),
-            InlineKeyboardButton(text='🔎 Check validator', callback_data='find_validator')
+            InlineKeyboardButton(text='🏴 PUNKS LEADERBOARD 🏴', callback_data='leaderboard'),
+            InlineKeyboardButton(text='🔎 CHECK YOUR NODE 🔎', callback_data='find_validator')
         )
 
         return keyboard
