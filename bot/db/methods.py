@@ -1,55 +1,91 @@
 # -*- coding: utf-8 -*-
 
-from sqlalchemy.orm import Session
+from sqlalchemy import update, delete
+from sqlalchemy.future import select
 
 
-def wrapped_methods(wrapped_models: tuple, session: Session) -> list:
-    return [Methods(model, session) for model in wrapped_models]
+async def wrapped_methods(wrapped_models: tuple, async_session) -> list:
+    async with async_session() as session:
+        async with session.begin():
+            session.add_all(
+                [
+                    model() for model in wrapped_models
+                ]
+            )
+        await session.commit()
+        return [Methods(model, async_session) for model in wrapped_models]
+
+
+def wrap_async(func):
+    async def wrapper(*args, **kwargs):
+        async with args[0]._session() as session:
+            async with session.begin():
+                kwargs |= {'session': session}
+                result = await func(*args, **kwargs)
+                return result
+
+    return wrapper
 
 
 class Methods:
 
-    def __init__(self, model: object(), session: Session):
+    def __init__(self, model: object(), session):
         self.__model = model
-        self.__session = session
-        self.__query = self.__session.query(model)
+        self._session = session
 
-    def commit(self):
-        self.__session.commit()
+    @wrap_async
+    async def commit(self, session):
+        await session.commit()
 
-    def paste_all_rows(self, *rows: dict):
-        self.__session.add_all(self.__model(**row) for row in rows)
+    @wrap_async
+    async def paste_all_rows(self, rows, session):
+        session.add_all(self.__model(**row) for row in rows)
+        await session.flush()
 
-    def paste_row(self, row: dict):
-        self.__session.add(self.__model(**row))
+    @wrap_async
+    async def paste_row(self, kwargs, session):
+        session.add(self.__model(**kwargs))
+        await session.flush()
 
-    def upgrade_row_by_criteria(self, row: dict, criteria: dict):
-        self.__query.filter_by(**criteria).update(row)
+    @wrap_async
+    async def upgrade_row_by_criteria(self, row: dict, criteria: dict, session):
+        q = update(self.__model).where(getattr(self.__model, list(criteria.keys())[0]) == list(criteria.values())[0])
+        for k, v in zip(row.keys(), row.values()):
+            q = q.values(**row)
+        await session.execute(q)
 
-    def delete_all_rows(self):
-        self.__query.delete()
+    @wrap_async
+    async def delete_all_rows(self, session):
+        await session.execute(delete(self.__model))
 
-    def delete_row_by_criteria(self, criteria: dict) -> int:
-        return self.__query.filter_by(**criteria).delete()
+    @wrap_async
+    async def delete_row_by_criteria(self, criteria, session) -> int:
+        return await session.execute(
+            delete(self.__model).where(getattr(self.__model, list(criteria.keys())[0]) == list(criteria.values())[0]))
 
-    def get_all_rows(self) -> tuple or None:
-        return self.__query.all()
+    @wrap_async
+    async def get_all_rows(self, session) -> tuple or None:
+        q = await session.execute(select(self.__model))
+        data = q.scalars().all()
+        return data
 
-    def get_row_by_criteria(self, criteria: dict) -> object or None:
-        return self.__query.filter_by(**criteria).first()
+    @wrap_async
+    async def get_row_by_criteria(self, criteria: dict, session) -> object or None:
+        q = await session.execute(
+            select(self.__model).where(getattr(self.__model, list(criteria.keys())[0]) == list(criteria.values())[0]))
+        return q.scalars().first()
 
-    def get_rows_count(self) -> int:
-        return self.__query.count()
-        return self.__query.filter_by(address=address).delete()
+    @wrap_async
+    async def get_rows_count(self, session) -> int:
+        q = await session.execute(select(self.__model))
+        return len(q.scalars().all())
 
-    def get_all_rows(self) -> tuple or None:
-        return self.__query.all()
+    @wrap_async
+    async def get_row_by_address(self, address: str, session) -> object or None:
+        q = await session.execute(select(self.__model).where(self.__model.address == address))
+        return q.scalars().first()
 
-    def get_row_by_address(self, address: str) -> object or None:
-        return self.__query.filter_by(address=address).first()
-
-    def get_row_by_id(self, note_id: int) -> object or None:
-        return self.__query.get(note_id)
-
-    def get_rows_count(self) -> int:
-        return self.__query.count()
+    @wrap_async
+    async def get_row_by_id(self, note_id: int, session) -> object or None:
+        q = await session.execute(select(self.__model).where(self.__model.id == note_id))
+        return q.scalars().first()

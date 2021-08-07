@@ -4,7 +4,7 @@ from sqlalchemy import Column, String, Integer, Float, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def wrapped_models(Base: declarative_base):
+async def wrapped_models(Base: declarative_base):
     class ValidatorData(Base):
         __tablename__ = 'validator_static'
 

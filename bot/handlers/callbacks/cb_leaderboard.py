@@ -8,16 +8,19 @@ from aiogram.dispatcher import FSMContext
 
 from ..states import Page
 
-from ...db.controller import leaderboard
+from ...db.config import config
 from ...message_templates import Message
 from ...keyboards import Keyboard
 
 
 async def leaderboard_page(call: CallbackQuery):
-    last_note_id = leaderboard.get_rows_count()
+    lb = config.get_leaderboard()
+    last_note_id = await lb.get_rows_count()
 
     try:
-        note_text = (leaderboard.get_row_by_id(note_id=1)).text
+
+        obj = await lb.get_row_by_id(note_id=1)
+        note_text = obj.text
     except Exception as e:
         print(f'WARN: {e}')
         note_text = ''
@@ -32,15 +35,17 @@ async def leaderboard_page(call: CallbackQuery):
 
 
 async def turn_leaderboard_page(call: CallbackQuery, state: FSMContext):
+    lb = config.get_leaderboard()
     current_note_id = (await state.get_data()).get('page')
-    last_note_id = leaderboard.get_rows_count()
+    last_note_id = await lb.get_rows_count()
 
     if call.data == 'next':
 
         if len(await state.get_data()) == 0:
             current_note_id = 2
 
-            note_text = (leaderboard.get_row_by_id(current_note_id)).text
+            obj = await lb.get_row_by_id(note_id=current_note_id)
+            note_text = obj.text
             text_response = 'Leaderboard. Page %s/%s\n' % (current_note_id, last_note_id) + note_text
 
             response = call.message.edit_text(
@@ -53,7 +58,8 @@ async def turn_leaderboard_page(call: CallbackQuery, state: FSMContext):
         else:
             current_note_id += 1
 
-            note_text = (leaderboard.get_row_by_id(current_note_id)).text
+            obj = await lb.get_row_by_id(note_id=current_note_id)
+            note_text = obj.text
             text_response = 'Leaderboard. Page %s/%s\n' % (current_note_id, last_note_id) + note_text
 
             response = call.message.edit_text(
@@ -66,7 +72,8 @@ async def turn_leaderboard_page(call: CallbackQuery, state: FSMContext):
     elif call.data == 'back':
         current_note_id -= 1
 
-        note_text = (leaderboard.get_row_by_id(current_note_id)).text
+        obj = await lb.get_row_by_id(note_id=current_note_id)
+        note_text = obj.text
         text_response = 'Leaderboard. Page %s/%s\n' % (current_note_id, last_note_id) + note_text
 
         response = call.message.edit_text(

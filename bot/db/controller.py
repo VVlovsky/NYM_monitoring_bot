@@ -1,23 +1,28 @@
 # -*- coding: utf-8 -*-
 
-import os
-
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
 
-from .models import wrapped_models
+from .config import config
+from .models import wrapped_models as wrapped_models_func
 from .methods import wrapped_methods
 
-from config import cfg
 
-base = declarative_base()
-engine = create_engine(r'sqlite:///%s' % cfg.database_path)
-session: Session = sessionmaker(bind=engine)()
+async def init_async_db():
+    engine = create_async_engine(r'sqlite+aiosqlite:///./test.db', future=True, echo=True)
 
-wrapped_models = wrapped_models(base)
+    session = sessionmaker(
+        engine, expire_on_commit=False, class_=AsyncSession
+    )
 
-validator_static, leaderboard, validator_by_user_id = wrapped_methods(wrapped_models, session)
+    base = declarative_base()
+    config.set_base(base)
+    wrapped_models = await wrapped_models_func(base)
 
-if not os.path.exists(cfg.database_path):
-    base.metadata.create_all(engine)
+    async with engine.begin() as conn:
+        await conn.run_sync(base.metadata.drop_all)
+        await conn.run_sync(base.metadata.create_all)
+
+    validator_static, leaderboard, validator_by_user_id = await wrapped_methods(wrapped_models, session)
+    return validator_static, leaderboard, validator_by_user_id
