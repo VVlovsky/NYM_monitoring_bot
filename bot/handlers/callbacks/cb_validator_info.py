@@ -19,8 +19,10 @@ async def check_validator(call: CallbackQuery, state: FSMContext):
     validator_by_user_id = config.get_validator_by_user_id()
     if call.data == 'home':
         await gather(
-            state.finish(), call.message.edit_text(text=message.welcome, reply_markup=Keyboard.main_menu(),
-                                                   disable_web_page_preview=True)
+            state.finish(),
+            call.message.edit_text(text=message.welcome % await config.get_validator_static().get_rows_count(),
+                                   reply_markup=Keyboard.main_menu(),
+                                   disable_web_page_preview=True)
         )
     else:
         try:
@@ -104,7 +106,8 @@ async def show_new_validator(call: Message or CallbackQuery, state: FSMContext):
     validator_static = config.get_validator_static()
     validator_by_user_id = config.get_validator_by_user_id()
     if isinstance(call, CallbackQuery):
-        response = call.message.edit_text(text=message.welcome, reply_markup=Keyboard.main_menu(),
+        response = call.message.edit_text(text=message.welcome % await config.get_validator_static().get_rows_count(),
+                                          reply_markup=Keyboard.main_menu(),
                                           disable_web_page_preview=True)
 
         await gather(response, state.finish())

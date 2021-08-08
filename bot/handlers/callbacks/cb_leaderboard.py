@@ -95,8 +95,10 @@ async def turn_leaderboard_page(call: CallbackQuery, state: FSMContext):
         await gather(response, state.update_data(page=current_note_id))
 
     elif call.data == 'home':
-        response = call.message.edit_text(text=MessageTemplates.welcome, reply_markup=Keyboard.main_menu(),
-                                          disable_web_page_preview=True)
+        response = call.message.edit_text(
+            text=MessageTemplates.welcome % await config.get_validator_static().get_rows_count(),
+            reply_markup=Keyboard.main_menu(),
+            disable_web_page_preview=True)
 
         await gather(response, state.finish())
 
