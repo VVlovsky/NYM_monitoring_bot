@@ -66,15 +66,14 @@ async def update_leaderboard_table(leaderboard, validator_static):
         short_address = data.identity_key[0:4] + '...' + data.identity_key[-5:-1]
         short_sphinx = data.sphinx_key[0:4] + '...' + data.sphinx_key[-5:-1]
         short_owner = data.owner[0:4] + '...' + data.owner[-5:-1]
-        punks = str(int(data.total_amount) // 1000000) + '.' + str(int(data.total_amount) % 1000000) + ' PUNK'
-        punks_bond = str(int(data.bond_amount) // 1000000) + '.' + str(int(data.bond_amount) % 1000000) + ' PUNK'
+        punks = str(int(data.total_amount) // 1000000) + '.' + str(int(data.total_amount) % 1000000)[:2] + ' PUNK'
+        punks_bond = str(int(data.bond_amount) // 1000000) + '.' + str(int(data.bond_amount) % 1000000)[:2] + ' PUNK'
         punks_delegated = str(int(data.delegation_amount) // 1000000) + '.' + str(
-            int(data.delegation_amount) % 1000000) + ' PUNK'
+            int(data.delegation_amount) % 1000000)[:2] + ' PUNK'
 
         await validator_static.upgrade_row_by_criteria({'rank': counter}, criteria={'owner': data.owner})
         note += message.leaderboard_note % (counter,
                                             data.identity_key, short_address, short_sphinx, short_owner,
-                                            data.version,
                                             data.host, punks, punks_bond, punks_delegated)
 
         if counter % 3 == 0:

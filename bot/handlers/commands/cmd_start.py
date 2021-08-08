@@ -3,12 +3,15 @@
 from aiogram import Dispatcher
 from aiogram.types import Message
 
-from ...message_templates import Message
+from ...message_templates import MessageTemplates
 from ...keyboards import Keyboard
 
 
-async def cmd_start(message: Message):
-    await message.answer(text=Message.welcome, reply_markup=Keyboard.main_menu())
+async def cmd_start(message):
+    await message.answer_animation(animation=(open('media/nym_welcome.mp4', 'rb')),
+                                   width=848, height=848, duration=1)
+    await message.answer(text=MessageTemplates.welcome, reply_markup=Keyboard.main_menu(),
+                         disable_web_page_preview=True)
 
 
 def register_start_cmd(dp: Dispatcher):
