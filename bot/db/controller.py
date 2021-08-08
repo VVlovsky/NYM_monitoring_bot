@@ -10,7 +10,7 @@ from .methods import wrapped_methods
 
 
 async def init_async_db():
-    engine = create_async_engine(r'sqlite+aiosqlite:///./test.db', future=True, echo=True)
+    engine = create_async_engine(r'sqlite+aiosqlite:///./test.db', future=True, echo=False)
 
     session = sessionmaker(
         engine, expire_on_commit=False, class_=AsyncSession
