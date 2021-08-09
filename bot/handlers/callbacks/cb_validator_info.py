@@ -73,8 +73,8 @@ async def generate_response(address, data, call_):
         sum_uptime_ipv4 += int(day.get('ipv4_uptime', '0'))
         sum_uptime_ipv6 += int(day.get('ipv6_uptime', '0'))
 
-    last_week_ipv4 = (sum_uptime_ipv4 + int(last_day_ipv4)) / (len(ip_data_history) + 1)
-    last_week_ipv6 = (sum_uptime_ipv6 + int(last_day_ipv6)) / (len(ip_data_history) + 1)
+    last_week_ipv4 = int((sum_uptime_ipv4 + int(last_day_ipv4)) / (len(ip_data_history) + 1))
+    last_week_ipv6 = int((sum_uptime_ipv6 + int(last_day_ipv6)) / (len(ip_data_history) + 1))
 
     last_hour_ipv4 = f'✅ 100%' if last_hour_ipv4 == 100 else f'⚠️ {last_hour_ipv4}%'
     last_hour_ipv6 = f'✅ 100%' if last_hour_ipv6 == 100 else f'⚠️ {last_hour_ipv6}%'
@@ -157,7 +157,7 @@ def register_validator_callback(dp: Dispatcher):
     dp.register_callback_query_handler(
         check_validator, lambda CallbackQuery: CallbackQuery.data in [
             'find_validator', 'repeat', 'home'
-        ]
+        ], state='*'
     )
 
     dp.register_message_handler(show_validator_stats, state=SetValidatorAddress)

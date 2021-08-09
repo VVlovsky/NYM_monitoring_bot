@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
 
 from asyncio import gather
-
 from aiogram import Dispatcher
 from aiogram.types import CallbackQuery
 from aiogram.dispatcher import FSMContext
-
 from ..states import Page
-
 from ...db.config import config
 from ...message_templates import MessageTemplates, message
 from ...keyboards import Keyboard
 
 
-async def leaderboard_page(call: CallbackQuery):
+async def leaderboard_page(call: CallbackQuery, state: FSMContext):
+    await state.reset_state()
     lb = config.get_leaderboard()
     last_note_id = await lb.get_rows_count()
     obj = await lb.get_row_by_id(note_id=1)
@@ -35,7 +33,7 @@ async def leaderboard_page(call: CallbackQuery):
 
 async def turn_leaderboard_page(call: CallbackQuery, state: FSMContext):
     lb = config.get_leaderboard()
-    current_note_id = (await state.get_data()).get('page')
+    current_note_id = (await state.get_data()).get('page', 1)
     last_note_id = await lb.get_rows_count()
 
     if call.data == 'next':
@@ -105,7 +103,8 @@ async def turn_leaderboard_page(call: CallbackQuery, state: FSMContext):
 
 def register_leaderboard_callbacks(dp: Dispatcher):
     dp.register_callback_query_handler(
-        leaderboard_page, lambda CallbackQuery: CallbackQuery.data == 'leaderboard'
+        leaderboard_page, lambda CallbackQuery: CallbackQuery.data == 'leaderboard', state='*'
     )
 
-    dp.register_callback_query_handler(turn_leaderboard_page, state=Page.note_id)
+    dp.register_callback_query_handler(turn_leaderboard_page,
+                                       lambda CallbackQuery: CallbackQuery.data in ['next', 'back', 'home'], state='*')

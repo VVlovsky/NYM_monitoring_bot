@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from aiogram import Dispatcher
-from aiogram.types import Message
 import pathlib
 
 from bot.db.config import config
@@ -19,4 +18,4 @@ async def cmd_start(message):
 
 
 def register_start_cmd(dp: Dispatcher):
-    dp.register_message_handler(cmd_start, commands='start')
+    dp.register_message_handler(cmd_start, commands='start', state='*')
