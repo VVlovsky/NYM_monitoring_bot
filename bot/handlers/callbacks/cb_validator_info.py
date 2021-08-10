@@ -51,8 +51,8 @@ async def check_validator(call: CallbackQuery, state: FSMContext):
 
 async def generate_response(address, data, call_):
     short_address = data.identity_key[0:4] + '...' + data.identity_key[-5:]
-    short_sphinx = data.sphinx_key[0:4] + '...' + data.sphinx_key[-5:-1]
-    short_owner = data.owner[0:4] + '...' + data.owner[-5:-1]
+    short_sphinx = data.sphinx_key[0:4] + '...' + data.sphinx_key[-5:]
+    short_owner = data.owner[0:4] + '...' + data.owner[-5:]
     punks = str(int(data.total_amount) // 1000000) + '.' + str(int(data.total_amount) % 1000000)[:2] + ' PUNK'
     punks_bond = str(int(data.bond_amount) // 1000000) + '.' + str(int(data.bond_amount) % 1000000)[:2] + ' PUNK'
     punks_delegated = str(int(data.delegation_amount) // 1000000) + '.' + str(
