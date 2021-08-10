@@ -23,15 +23,19 @@ async def leaderboard_page(call: CallbackQuery, state: FSMContext):
         print(f'WARN: {e}')
         text_response = message.db_problem % 1
 
-    await gather(
-        call.message.edit_text(
-            text=text_response, reply_markup=Keyboard.switch_page(1, last_note_id), disable_web_page_preview=True
-        ),
-        Page.note_id.set()
-    )
+    try:
+        await gather(
+            call.message.edit_text(
+                text=text_response, reply_markup=Keyboard.switch_page(1, last_note_id), disable_web_page_preview=True
+            ),
+            Page.note_id.set()
+        )
+    except Exception as e:
+        print(f'WARN: {e}')
 
 
 async def turn_leaderboard_page(call: CallbackQuery, state: FSMContext):
+    await call.answer()
     lb = config.get_leaderboard()
     current_note_id = (await state.get_data()).get('page', 1)
     last_note_id = await lb.get_rows_count()
@@ -49,12 +53,16 @@ async def turn_leaderboard_page(call: CallbackQuery, state: FSMContext):
                 print(f'WARN: {e}')
                 text_response = message.db_problem % current_note_id
 
-            response = call.message.edit_text(
-                text=text_response, reply_markup=Keyboard.switch_page(current_note_id, last_note_id),
-                disable_web_page_preview=True
-            )
+            try:
+                response = call.message.edit_text(
+                    text=text_response, reply_markup=Keyboard.switch_page(current_note_id, last_note_id),
+                    disable_web_page_preview=True
+                )
+                await gather(response, state.update_data(page=2))
 
-            await gather(response, state.update_data(page=2))
+            except Exception as e:
+                print(f'WARN: {e}')
+
 
         else:
             current_note_id += 1
@@ -67,12 +75,16 @@ async def turn_leaderboard_page(call: CallbackQuery, state: FSMContext):
                 print(f'WARN: {e}')
                 text_response = message.db_problem % current_note_id
 
-            response = call.message.edit_text(
-                text=text_response, reply_markup=Keyboard.switch_page(current_note_id, last_note_id),
-                disable_web_page_preview=True
-            )
+            try:
+                response = call.message.edit_text(
+                    text=text_response, reply_markup=Keyboard.switch_page(current_note_id, last_note_id),
+                    disable_web_page_preview=True
+                )
+                await gather(response, state.update_data(page=current_note_id))
 
-            await gather(response, state.update_data(page=current_note_id))
+            except Exception as e:
+                print(f'WARN: {e}')
+
 
     elif call.data == 'back':
         current_note_id -= 1
@@ -85,14 +97,18 @@ async def turn_leaderboard_page(call: CallbackQuery, state: FSMContext):
             print(f'WARN: {e}')
             text_response = message.db_problem % current_note_id
 
-        response = call.message.edit_text(
-            text=text_response, reply_markup=Keyboard.switch_page(current_note_id, last_note_id),
-            disable_web_page_preview=True
-        )
+        try:
+            response = call.message.edit_text(
+                text=text_response, reply_markup=Keyboard.switch_page(current_note_id, last_note_id),
+                disable_web_page_preview=True
+            )
+            await gather(response, state.update_data(page=current_note_id))
 
-        await gather(response, state.update_data(page=current_note_id))
+        except Exception as e:
+            print(f'WARN: {e}')
 
     elif call.data == 'home':
+        await call.answer()
         response = call.message.edit_text(
             text=MessageTemplates.welcome % await config.get_validator_static().get_rows_count(),
             reply_markup=Keyboard.main_menu(),
