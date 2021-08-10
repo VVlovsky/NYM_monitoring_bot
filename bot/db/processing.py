@@ -49,7 +49,6 @@ async def update_validator_table(validator_static, leaderboard):
 
 
 async def update_leaderboard_table(leaderboard, validator_static):
-    await leaderboard.delete_all_rows()
 
     counter = 0
     note = ''
@@ -63,7 +62,7 @@ async def update_leaderboard_table(leaderboard, validator_static):
 
         counter += 1
 
-        short_address = data.identity_key[0:4] + '...' + data.identity_key[-5:-1]
+        short_address = data.identity_key[0:4] + '...' + data.identity_key[-5:]
         short_sphinx = data.sphinx_key[0:4] + '...' + data.sphinx_key[-5:-1]
         short_owner = data.owner[0:4] + '...' + data.owner[-5:-1]
         punks = str(int(data.total_amount) // 1000000) + '.' + str(int(data.total_amount) % 1000000)[:2] + ' PUNK'
@@ -72,12 +71,17 @@ async def update_leaderboard_table(leaderboard, validator_static):
             int(data.delegation_amount) % 1000000)[:2] + ' PUNK'
 
         await validator_static.upgrade_row_by_criteria({'rank': counter}, criteria={'owner': data.owner})
-        note += message.leaderboard_note % (counter,
+        note += message.leaderboard_note % (counter, data.host,
                                             data.identity_key, short_address, short_sphinx, short_owner,
-                                            data.host, punks, punks_bond, punks_delegated)
+                                            punks, punks_bond, punks_delegated)
 
         if counter % 3 == 0:
-            await leaderboard.paste_row({'text': note})
+            leaderboard_page = await leaderboard.get_row_by_criteria(criteria={'id': counter // 3})
+            if leaderboard_page:
+                await leaderboard.upgrade_row_by_criteria({'text': note}, criteria={'id': counter // 3})
+            else:
+                await leaderboard.paste_row({'id': counter // 3, 'text': note})
+
             note = ''
 
     await leaderboard.commit()

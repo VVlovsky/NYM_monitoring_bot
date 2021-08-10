@@ -46,7 +46,7 @@ class Keyboard:
     def repeat():
         keyboard = InlineKeyboardMarkup(row_width=1)
         keyboard.add(
-            InlineKeyboardButton(text='🔄', callback_data='repeat'),
+            InlineKeyboardButton(text='🗑', callback_data='repeat'),
             InlineKeyboardButton(text='🏠', callback_data='home')
         )
 

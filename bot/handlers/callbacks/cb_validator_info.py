@@ -16,6 +16,7 @@ from ...network_methods import request_get
 
 
 async def check_validator(call: CallbackQuery, state: FSMContext):
+    await call.answer()
     validator_by_user_id = config.get_validator_by_user_id()
     if call.data == 'home':
         await gather(
@@ -49,7 +50,7 @@ async def check_validator(call: CallbackQuery, state: FSMContext):
 
 
 async def generate_response(address, data, call_):
-    short_address = data.identity_key[0:4] + '...' + data.identity_key[-5:-1]
+    short_address = data.identity_key[0:4] + '...' + data.identity_key[-5:]
     short_sphinx = data.sphinx_key[0:4] + '...' + data.sphinx_key[-5:-1]
     short_owner = data.owner[0:4] + '...' + data.owner[-5:-1]
     punks = str(int(data.total_amount) // 1000000) + '.' + str(int(data.total_amount) % 1000000)[:2] + ' PUNK'
@@ -84,9 +85,9 @@ async def generate_response(address, data, call_):
     last_week_ipv6 = f'✅ 100%' if last_week_ipv6 == 100 else f'⚠️ {last_week_ipv6}%'
 
     response = call_.edit_text(
-        text=message.validator_statistic % (data.rank,
+        text=message.validator_statistic % (data.rank, data.host,
                                             data.identity_key, short_address, short_sphinx, short_owner, data.layer,
-                                            data.location, data.version, data.host,
+                                            data.location, data.version,
                                             most_recent_ipv4, most_recent_ipv6, last_hour_ipv4, last_hour_ipv6,
                                             last_day_ipv4, last_day_ipv6, last_week_ipv4, last_week_ipv6,
                                             punks, punks_bond, punks_delegated),
@@ -103,6 +104,8 @@ async def get_report_history(id_key: str, endpoint: str) -> Dict:
 
 
 async def show_new_validator(call: Message or CallbackQuery, state: FSMContext):
+    if isinstance(call, CallbackQuery):
+        await call.answer()
     validator_static = config.get_validator_static()
     validator_by_user_id = config.get_validator_by_user_id()
     if isinstance(call, CallbackQuery):
@@ -117,6 +120,12 @@ async def show_new_validator(call: Message or CallbackQuery, state: FSMContext):
 
         address = call.text
         stats = await validator_static.get_row_by_criteria({'identity_key': address})
+
+        if not stats:
+            stats = await validator_static.get_row_by_criteria({'sphinx_key': address})
+
+        if not stats:
+            stats = await validator_static.get_row_by_criteria({'owner': address})
 
         if not stats:
             response = call_.edit_text(text=message.validator_not_found, reply_markup=Keyboard.repeat())
@@ -134,6 +143,8 @@ async def show_new_validator(call: Message or CallbackQuery, state: FSMContext):
 
 
 async def show_validator_stats(call: Message or CallbackQuery, state: FSMContext):
+    if isinstance(call, CallbackQuery):
+        await call.answer()
     validator_static = config.get_validator_static()
     validator_by_user_id = config.get_validator_by_user_id()
     call_: CallbackQuery.message = (await state.get_data()).get('message_data')
@@ -144,6 +155,11 @@ async def show_validator_stats(call: Message or CallbackQuery, state: FSMContext
     else:
         address = row_with_address.identity_key
         stats = await validator_static.get_row_by_criteria({'identity_key': address})
+        if not stats:
+            stats = await validator_static.get_row_by_criteria({'sphinx_key': address})
+        if not stats:
+            stats = await validator_static.get_row_by_criteria({'owner': address})
+
         if call_:
             response = await generate_response(address, stats, call_)
             await gather(call.delete(), response)
