@@ -62,16 +62,17 @@ async def update_leaderboard_table(leaderboard, validator_static):
 
         counter += 1
 
-        short_address = data.identity_key[0:4] + '...' + data.identity_key[-5:]
-        short_sphinx = data.sphinx_key[0:4] + '...' + data.sphinx_key[-5:]
-        short_owner = data.owner[0:4] + '...' + data.owner[-5:]
+        short_address = data.identity_key[0:4] + '...' + data.identity_key[-4:]
+        short_sphinx = data.sphinx_key[0:4] + '...' + data.sphinx_key[-4:]
+        short_owner = data.owner[0:4] + '...' + data.owner[-4:]
         punks = str(int(data.total_amount) // 1000000) + '.' + str(int(data.total_amount) % 1000000)[:2] + ' PUNK'
         punks_bond = str(int(data.bond_amount) // 1000000) + '.' + str(int(data.bond_amount) % 1000000)[:2] + ' PUNK'
         punks_delegated = str(int(data.delegation_amount) // 1000000) + '.' + str(
             int(data.delegation_amount) % 1000000)[:2] + ' PUNK'
+        host = data.host if len(data.host) <= 15 else data.host[0:4] + '...' + data.host[-4:]
 
         await validator_static.upgrade_row_by_criteria({'rank': counter}, criteria={'owner': data.owner})
-        note += message.leaderboard_note % (counter, data.host,
+        note += message.leaderboard_note % (counter, host,
                                             data.identity_key, short_address, short_sphinx, short_owner,
                                             punks, punks_bond, punks_delegated)
 

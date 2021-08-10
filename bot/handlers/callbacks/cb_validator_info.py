@@ -57,6 +57,7 @@ async def generate_response(address, data, call_):
     punks_bond = str(int(data.bond_amount) // 1000000) + '.' + str(int(data.bond_amount) % 1000000)[:2] + ' PUNK'
     punks_delegated = str(int(data.delegation_amount) // 1000000) + '.' + str(
         int(data.delegation_amount) % 1000000)[:2] + ' PUNK'
+    host = data.host if len(data.host) <= 15 else data.host[0:4] + '...' + data.host[-4:]
 
     ip_data_report = await get_report_history(data.identity_key, 'report')
     most_recent_ipv4 = '✅' if ip_data_report.get('most_recent_ipv4', '0') else '❌'
@@ -85,7 +86,7 @@ async def generate_response(address, data, call_):
     last_week_ipv6 = f'✅ 100%' if last_week_ipv6 == 100 else f'⚠️ {last_week_ipv6}%'
 
     response = call_.edit_text(
-        text=message.validator_statistic % (data.rank, data.host,
+        text=message.validator_statistic % (data.rank, host,
                                             data.identity_key, short_address, short_sphinx, short_owner, data.layer,
                                             data.location, data.version,
                                             most_recent_ipv4, most_recent_ipv6, last_hour_ipv4, last_hour_ipv6,
@@ -165,7 +166,10 @@ async def show_validator_stats(call: Message or CallbackQuery, state: FSMContext
             await gather(call.delete(), response)
         else:
             response = await generate_response(address, stats, call.message)
-            await gather(response)
+            try:
+                await gather(response)
+            except Exception as e:
+                print(f'WARN: {e}')
     await state.finish()
 
 
